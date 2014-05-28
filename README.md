@@ -139,6 +139,7 @@ Creates an application pool in IIS.
 - max_proc: specifies the number of worker processes associated with the pool.
 - thirty_two_bit: set the pool to run in 32 bit mode, true or false
 - no_managed_code: allow Unmanaged Code in setting up IIS app pools
+- properties: configures pool properties with any properties you could pass to "appcmd.exe set apppool", as a string or hash
 
 ### Example
 
@@ -147,6 +148,18 @@ Creates an application pool in IIS.
          runtime_version "2.0"
          pipeline_mode :Classic
          action :add
+     end
+
+     #configures pool properties from a hash
+     iis_pool 'other_pool_1' do
+         action :config
+         properties { 'failure.rapidFailProtection' => true }
+     end
+
+     #configures pool properties from a string
+     iis_pool 'other_pool_2' do
+         action :config
+         properties '/autoStart:false /failure.rapidFailProtection:true'
      end
 
 
