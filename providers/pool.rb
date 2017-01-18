@@ -27,6 +27,10 @@ include REXML
 include Opscode::IIS::Helper
 include Opscode::IIS::Processors
 
+def whyrun_supported?
+  true
+end
+
 action :add do
   if !@current_resource.exists
     cmd = "#{appcmd(node)} add apppool /name:\"#{new_resource.pool_name}\""
@@ -38,7 +42,9 @@ action :add do
     cmd << " /managedPipelineMode:#{new_resource.pipeline_mode.capitalize}" if new_resource.pipeline_mode
     cmd << " /commit:\"MACHINE/WEBROOT/APPHOST\""
     Chef::Log.debug(cmd)
-    shell_out!(cmd)
+    execute "Adding the IIS pool #{new_resource.pool_name}" do
+      command cmd
+    end
     configure
     new_resource.updated_by_last_action(true)
     Chef::Log.info('App pool created')
@@ -53,7 +59,9 @@ end
 
 action :delete do
   if @current_resource.exists
-    shell_out!("#{appcmd(node)} delete apppool \"#{site_identifier}\"")
+    execute "Deleting the IIS pool #{new_resource.pool_name}" do
+      command "#{appcmd(node)} delete apppool \"#{site_identifier}\""
+    end
     new_resource.updated_by_last_action(true)
     Chef::Log.info("#{new_resource} deleted")
   else
@@ -63,9 +71,11 @@ end
 
 action :start do
   if !@current_resource.running
-    shell_out!("#{appcmd(node)} start apppool \"#{site_identifier}\"")
-    new_resource.updated_by_last_action(true)
-    Chef::Log.info("#{new_resource} started")
+      execute "Starting IIS pool #{site_identifier}" do
+        command "#{appcmd(node)} start apppool \"#{site_identifier}\""
+      end
+      new_resource.updated_by_last_action(true)
+      Chef::Log.info("#{new_resource} started")
   else
     Chef::Log.debug("#{new_resource} already running - nothing to do")
   end
@@ -73,7 +83,9 @@ end
 
 action :stop do
   if @current_resource.running
-    shell_out!("#{appcmd(node)} stop apppool \"#{site_identifier}\"")
+    execute "Stopping the IIS pool #{new_resource.pool_name}" do
+      command "#{appcmd(node)} stop apppool \"#{site_identifier}\""
+    end
     new_resource.updated_by_last_action(true)
     Chef::Log.info("#{new_resource} stopped")
   else
@@ -82,15 +94,21 @@ action :stop do
 end
 
 action :restart do
-  shell_out!("#{appcmd(node)} stop APPPOOL \"#{site_identifier}\"")
+  execute "Stopping the IIS pool #{site_identifier}" do
+    command "#{appcmd(node)} stop apppool \"#{site_identifier}\""
+  end
   sleep 2
-  shell_out!("#{appcmd(node)} start APPPOOL \"#{site_identifier}\"")
+  execute "Starting the IIS pool #{site_identifier}" do
+    command "#{appcmd(node)} start apppool \"#{site_identifier}\""
+  end
   new_resource.updated_by_last_action(true)
   Chef::Log.info("#{new_resource} restarted")
 end
 
 action :recycle do
-  shell_out!("#{appcmd(node)} recycle APPPOOL \"#{site_identifier}\"")
+  execute "Recycling the IIS pool #{new_resource.pool_name}" do
+    command "#{appcmd(node)} recycle APPPOOL \"#{site_identifier}\""
+  end
   new_resource.updated_by_last_action(true)
   Chef::Log.info("#{new_resource} recycled")
 end
@@ -239,7 +257,9 @@ def configure
       is_new_recycle_at_time = true
       clear_pool_schedule_cmd = "#{appcmd(node)} set config /section:applicationPools \"/-[name='#{new_resource.pool_name}'].recycling.periodicRestart.schedule\""
       Chef::Log.debug(clear_pool_schedule_cmd)
-      shell_out!(clear_pool_schedule_cmd)
+      execute "Recycling items" do
+        command clear_pool_schedule_cmd
+      end
     end
 
     configure_application_pool(new_resource.recycle_after_time && is_new_recycle_after_time, "recycling.periodicRestart.time:#{new_resource.recycle_after_time}")
@@ -269,8 +289,10 @@ def configure
     configure_application_pool(is_new_smp_processor_affinity_mask_2, "cpu.smpProcessorAffinityMask2:#{new_resource.smp_processor_affinity_mask_2}")
 
     if (@cmd != "#{appcmd(node)} set config /section:applicationPools")
+      execute "#{appcmd(node)} set config /section:applicationPools" do
+        command @cmd
+      end
       Chef::Log.debug(@cmd)
-      shell_out!(@cmd)
     end
 
     # Application Pool Identity Settings
@@ -280,8 +302,10 @@ def configure
       cmd << " \"/[name='#{new_resource.pool_name}'].processModel.identityType:SpecificUser\""
       cmd << " \"/[name='#{new_resource.pool_name}'].processModel.userName:#{new_resource.pool_username}\""
       cmd << " \"/[name='#{new_resource.pool_name}'].processModel.password:#{new_resource.pool_password}\"" if new_resource.pool_password && new_resource.pool_password != '' && is_new_password
-      Chef::Log.debug(cmd)
-      shell_out!(cmd)
+      converge_by("#{cmd}") do
+        Chef::Log.debug(cmd)
+        shell_out!(cmd)
+      end
     elsif (new_resource.pool_username.nil? || new_resource.pool_username == '') &&
           (new_resource.pool_password.nil? || new_resource.pool_username == '') &&
           (is_new_identity_type && new_resource.pool_identity != 'SpecificUser')
@@ -289,7 +313,9 @@ def configure
       cmd = "#{appcmd(node)} set config /section:applicationPools"
       cmd << " \"/[name='#{new_resource.pool_name}'].processModel.identityType:#{new_resource.pool_identity}\""
       Chef::Log.debug(cmd)
-      shell_out!(cmd)
+      execute cmd do
+        command cmd
+      end
     end
 
     if @was_updated
