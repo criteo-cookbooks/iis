@@ -41,7 +41,6 @@ action :add do
     end
     cmd << " /managedPipelineMode:#{new_resource.pipeline_mode.capitalize}" if new_resource.pipeline_mode
     cmd << " /commit:\"MACHINE/WEBROOT/APPHOST\""
-    Chef::Log.debug(cmd)
     execute "Adding the IIS pool #{new_resource.pool_name}" do
       command cmd
     end
@@ -69,10 +68,10 @@ end
 
 action :start do
   if !@current_resource.running
-      execute "Starting IIS pool #{site_identifier}" do
-        command "#{appcmd(node)} start apppool \"#{site_identifier}\""
-      end
-      Chef::Log.info("#{new_resource} started")
+    execute "Starting IIS pool #{site_identifier}" do
+      command "#{appcmd(node)} start apppool \"#{site_identifier}\""
+    end
+    Chef::Log.info("#{new_resource} started")
   else
     Chef::Log.debug("#{new_resource} already running - nothing to do")
   end
@@ -296,9 +295,8 @@ def configure
       cmd << " \"/[name='#{new_resource.pool_name}'].processModel.identityType:SpecificUser\""
       cmd << " \"/[name='#{new_resource.pool_name}'].processModel.userName:#{new_resource.pool_username}\""
       cmd << " \"/[name='#{new_resource.pool_name}'].processModel.password:#{new_resource.pool_password}\"" if new_resource.pool_password && new_resource.pool_password != '' && is_new_password
-      converge_by("#{cmd}") do
-        Chef::Log.debug(cmd)
-        shell_out!(cmd)
+      execute cmd.to_s do
+        command cmd
       end
     elsif (new_resource.pool_username.nil? || new_resource.pool_username == '') &&
           (new_resource.pool_password.nil? || new_resource.pool_username == '') &&
@@ -307,7 +305,7 @@ def configure
       cmd = "#{appcmd(node)} set config /section:applicationPools"
       cmd << " \"/[name='#{new_resource.pool_name}'].processModel.identityType:#{new_resource.pool_identity}\""
       Chef::Log.debug(cmd)
-      execute cmd do
+      execute cmd.to_s do
         command cmd
       end
     end
