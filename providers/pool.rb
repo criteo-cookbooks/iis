@@ -46,7 +46,6 @@ action :add do
       command cmd
     end
     configure
-    new_resource.updated_by_last_action(true)
     Chef::Log.info('App pool created')
   else
     Chef::Log.debug("#{new_resource} pool already exists - nothing to do")
@@ -54,7 +53,7 @@ action :add do
 end
 
 action :config do
-  new_resource.updated_by_last_action(true) if configure
+  configure
 end
 
 action :delete do
@@ -62,7 +61,6 @@ action :delete do
     execute "Deleting the IIS pool #{new_resource.pool_name}" do
       command "#{appcmd(node)} delete apppool \"#{site_identifier}\""
     end
-    new_resource.updated_by_last_action(true)
     Chef::Log.info("#{new_resource} deleted")
   else
     Chef::Log.debug("#{new_resource} pool does not exist - nothing to do")
@@ -74,7 +72,6 @@ action :start do
       execute "Starting IIS pool #{site_identifier}" do
         command "#{appcmd(node)} start apppool \"#{site_identifier}\""
       end
-      new_resource.updated_by_last_action(true)
       Chef::Log.info("#{new_resource} started")
   else
     Chef::Log.debug("#{new_resource} already running - nothing to do")
@@ -86,7 +83,6 @@ action :stop do
     execute "Stopping the IIS pool #{new_resource.pool_name}" do
       command "#{appcmd(node)} stop apppool \"#{site_identifier}\""
     end
-    new_resource.updated_by_last_action(true)
     Chef::Log.info("#{new_resource} stopped")
   else
     Chef::Log.debug("#{new_resource} already stopped - nothing to do")
@@ -101,7 +97,6 @@ action :restart do
   execute "Starting the IIS pool #{site_identifier}" do
     command "#{appcmd(node)} start apppool \"#{site_identifier}\""
   end
-  new_resource.updated_by_last_action(true)
   Chef::Log.info("#{new_resource} restarted")
 end
 
@@ -109,7 +104,6 @@ action :recycle do
   execute "Recycling the IIS pool #{new_resource.pool_name}" do
     command "#{appcmd(node)} recycle APPPOOL \"#{site_identifier}\""
   end
-  new_resource.updated_by_last_action(true)
   Chef::Log.info("#{new_resource} recycled")
 end
 
