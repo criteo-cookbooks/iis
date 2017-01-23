@@ -130,11 +130,11 @@ def load_current_resource
   end
 end
 
-private
-
 def site_identifier
   new_resource.pool_name
 end
+
+private
 
 def configure
   @was_updated = false
