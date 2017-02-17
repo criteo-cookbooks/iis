@@ -282,8 +282,9 @@ def configure
     configure_application_pool(is_new_smp_processor_affinity_mask_2, "cpu.smpProcessorAffinityMask2:#{new_resource.smp_processor_affinity_mask_2}")
 
     if (@cmd != "#{appcmd(node)} set config /section:applicationPools")
-      execute "#{appcmd(node)} set config /section:applicationPools" do
-        command @cmd
+      cmd = @cmd
+      execute "Configure IIS pool #{new_resource.pool_name}" do
+        command cmd
       end
       Chef::Log.debug(@cmd)
     end
