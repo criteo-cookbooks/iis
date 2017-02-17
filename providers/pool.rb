@@ -248,10 +248,8 @@ def configure
     if should_clear_apppool_schedules
       @was_updated = true
       is_new_recycle_at_time = true
-      clear_pool_schedule_cmd = "#{appcmd(node)} set config /section:applicationPools \"/-[name='#{new_resource.pool_name}'].recycling.periodicRestart.schedule\""
-      Chef::Log.debug(clear_pool_schedule_cmd)
       execute "Recycling items" do
-        command clear_pool_schedule_cmd
+        command "#{appcmd(node)} set config /section:applicationPools \"/-[name='#{new_resource.pool_name}'].recycling.periodicRestart.schedule\""
       end
     end
 
@@ -286,7 +284,6 @@ def configure
       execute "Configure IIS pool #{new_resource.pool_name}" do
         command cmd
       end
-      Chef::Log.debug(@cmd)
     end
 
     # Application Pool Identity Settings
@@ -305,7 +302,6 @@ def configure
       @was_updated = true
       cmd = "#{appcmd(node)} set config /section:applicationPools"
       cmd << " \"/[name='#{new_resource.pool_name}'].processModel.identityType:#{new_resource.pool_identity}\""
-      Chef::Log.debug(cmd)
       execute cmd.to_s do
         command cmd
       end
