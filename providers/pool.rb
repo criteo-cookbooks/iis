@@ -43,7 +43,7 @@ action :add do
     end
     cmd << " /managedPipelineMode:#{new_resource.pipeline_mode.capitalize}" if new_resource.pipeline_mode
     cmd << " /commit:\"MACHINE/WEBROOT/APPHOST\""
-    execute "Adding the IIS pool #{new_resource.pool_name}" do
+    execute "Add IIS pool #{new_resource.pool_name}" do
       command cmd
     end
     configure
@@ -59,7 +59,7 @@ end
 
 action :delete do
   if @current_resource.exists
-    execute "Deleting the IIS pool #{new_resource.pool_name}" do
+    execute "Delete IIS pool #{new_resource.pool_name}" do
       command "#{appcmd(node)} delete apppool \"#{site_identifier}\""
     end
     Chef::Log.info("#{new_resource} deleted")
@@ -70,7 +70,7 @@ end
 
 action :start do
   if !@current_resource.running
-    execute "Starting IIS pool #{site_identifier}" do
+    execute "Start IIS pool #{site_identifier}" do
       command "#{appcmd(node)} start apppool \"#{site_identifier}\""
     end
     Chef::Log.info("#{new_resource} started")
@@ -91,19 +91,19 @@ action :stop do
 end
 
 action :restart do
-  execute "Stopping the IIS pool #{site_identifier}" do
+  execute "Stop IIS pool #{site_identifier}" do
     command "#{appcmd(node)} stop apppool \"#{site_identifier}\""
   end
   sleep 2
-  execute "Starting the IIS pool #{site_identifier}" do
+  execute "Start IIS pool #{site_identifier}" do
     command "#{appcmd(node)} start apppool \"#{site_identifier}\""
   end
   Chef::Log.info("#{new_resource} restarted")
 end
 
 action :recycle do
-  execute "Recycling the IIS pool #{new_resource.pool_name}" do
-    command "#{appcmd(node)} recycle APPPOOL \"#{site_identifier}\""
+  execute "Recycle IIS pool #{new_resource.pool_name}" do
+    command "#{appcmd(node)} recycle apppool \"#{site_identifier}\""
   end
   Chef::Log.info("#{new_resource} recycled")
 end
@@ -250,7 +250,7 @@ def configure
     if should_clear_apppool_schedules
       @was_updated = true
       is_new_recycle_at_time = true
-      execute "Recycling items" do
+      execute "Remove recycle schedule for IIS pool #{new_resource.pool_name}" do
         command "#{appcmd(node)} set config /section:applicationPools \"/-[name='#{new_resource.pool_name}'].recycling.periodicRestart.schedule\""
       end
     end
@@ -295,7 +295,7 @@ def configure
       cmd << " \"/[name='#{new_resource.pool_name}'].processModel.identityType:SpecificUser\""
       cmd << " \"/[name='#{new_resource.pool_name}'].processModel.userName:#{new_resource.pool_username}\""
       cmd << " \"/[name='#{new_resource.pool_name}'].processModel.password:#{new_resource.pool_password}\"" if new_resource.pool_password && new_resource.pool_password != '' && is_new_password
-      execute cmd.to_s do
+      execute "Set up authentication for IIS pool #{new_resource.pool_name}" do
         command cmd
       end
     elsif (new_resource.pool_username.nil? || new_resource.pool_username == '') &&
@@ -304,7 +304,7 @@ def configure
       @was_updated = true
       cmd = "#{appcmd(node)} set config /section:applicationPools"
       cmd << " \"/[name='#{new_resource.pool_name}'].processModel.identityType:#{new_resource.pool_identity}\""
-      execute cmd.to_s do
+      execute "Set processModel.identityType for IIS pool #{new_resource.pool_name}" do
         command cmd
       end
     end
