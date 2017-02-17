@@ -27,6 +27,8 @@ include REXML
 include Opscode::IIS::Helper
 include Opscode::IIS::Processors
 
+use_inline_resources
+
 def whyrun_supported?
   true
 end
