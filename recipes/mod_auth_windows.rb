@@ -1,9 +1,9 @@
 #
 # Author:: Seth Chisamore (<schisamo@chef.io>)
-# Cookbook Name:: iis
+# Cookbook:: iis
 # Recipe:: mod_auth_windows
 #
-# Copyright 2011, Chef Software, Inc.
+# Copyright:: 2011-2016, Chef Software, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,11 +20,11 @@
 
 include_recipe 'iis'
 
-if Opscode::IIS::Helper.older_than_windows2008r2?
-  feature = 'Web-Windows-Auth'
-else
-  feature = 'IIS-WindowsAuthentication'
-end
+feature = if Opscode::IIS::Helper.older_than_windows2008r2?
+            'Web-Windows-Auth'
+          else
+            'IIS-WindowsAuthentication'
+          end
 
 windows_feature feature do
   action :install

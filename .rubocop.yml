@@ -1,33 +1,16 @@
-AllCops:
+Lint/ParenthesesAsGroupedExpression:
   Exclude:
-    - vendor/**/*
-    - Guardfile
+    - 'test/integration/**/*'
 
-AlignParameters:
-  Enabled: false
-ClassLength:
-  Enabled: false
-CyclomaticComplexity:
-  Enabled: false
-Documentation:
-  Enabled: false
-Encoding:
-  Enabled: false
-Style/FileName:
-  Enabled: false
-LineLength:
-  Enabled: false
-MethodLength:
-  Enabled: false
-Metrics/AbcSize:
-  Enabled: false
-Metrics/ModuleLength:
-  Enabled: false
-PerceivedComplexity:
-  Enabled: false
-SingleSpaceBeforeFirstArg:
-  Enabled: false
-Style/ClassAndModuleChildren:
-  Enabled: false
-Style/FileName:
-  Enabled: false
+Style/PredicateName:
+  Exclude:
+    - 'test/integration/app/libraries/*'
+    - 'test/integration/module/libraries/*'
+    - 'test/integration/pool/libraries/*'
+    - 'test/integration/root/libraries/*'
+    - 'test/integration/section/libraries/*'
+    - 'test/integration/vdir/libraries/*'
+
+Style/GuardClause:
+  Exclude:
+    - 'libraries/helper.rb'
