@@ -1,9 +1,9 @@
 #
 # Author:: Justin Schuhmann
-# Cookbook Name:: iis
+# Cookbook:: iis
 # Recipe:: mod_auth_basic
 #
-# Copyright:: Justin Schuhmann
+# Copyright:: 2016, Justin Schuhmann
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,11 +20,11 @@
 
 include_recipe 'iis'
 
-if Opscode::IIS::Helper.older_than_windows2008r2?
-  feature = 'Web-Digest-Auth'
-else
-  feature = 'IIS-DigestAuthentication'
-end
+feature = if Opscode::IIS::Helper.older_than_windows2008r2?
+            'Web-Digest-Auth'
+          else
+            'IIS-DigestAuthentication'
+          end
 
 windows_feature feature do
   action :install

@@ -1,9 +1,9 @@
 #
 # Author:: Kristian Vlaardingerbroek (<kvlaardingerbroek@schubergphilis.com>)
-# Cookbook Name:: iis
+# Cookbook:: iis
 # Recipe:: mod_iis6_metabase_compat
 #
-# Copyright 2013, Schuberg Philis B.V.
+# Copyright:: 2013-2016, Schuberg Philis B.V.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,11 +20,11 @@
 
 include_recipe 'iis'
 
-if Opscode::IIS::Helper.older_than_windows2008r2?
-  features = %w(Web-Mgmt-Compat Web-Metabase)
-else
-  features = %w(IIS-IIS6ManagementCompatibility IIS-Metabase)
-end
+features = if Opscode::IIS::Helper.older_than_windows2008r2?
+             %w(Web-Mgmt-Compat Web-Metabase)
+           else
+             %w(IIS-IIS6ManagementCompatibility IIS-Metabase)
+           end
 
 features.each do |f|
   windows_feature f do

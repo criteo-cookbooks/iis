@@ -1,11 +1,8 @@
 #
-# Cookbook Name:: iis
+# Cookbook:: iis
 # Library:: helper
 #
-# Author:: Julian C. Dunn <jdunn@chef.io>
-# Author:: Justin Schuhmann <jmschu02@gmail.com>
-#
-# Copyright 2013, Chef Software, Inc.
+# Copyright:: 2017, Chef Software, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -67,13 +64,31 @@ module Opscode
       end
 
       def windows_cleanpath(path)
-        if !defined?(Chef::Util::PathHelper.cleanpath).nil?
-          path = Chef::Util::PathHelper.cleanpath(path)
-        else
-          path = win_friendly_path(path)
-        end
+        path = if defined?(Chef::Util::PathHelper.cleanpath).nil?
+                 win_friendly_path(path)
+               else
+                 Chef::Util::PathHelper.cleanpath(path)
+               end
         # Remove any trailing slashes to prevent them from accidentally escaping any quotes.
-        path.chomp('/').chomp('\\')
+        path.tr('/', '\\')
+      end
+
+      def application_cleanname(application_name)
+        if application_name.count('/') == 0
+          "#{application_name}/"
+        elsif application_name.count('/') > 1
+          application_name.chomp('/')
+        else
+          application_name
+        end
+      end
+
+      def value(document, xpath)
+        XPath.first(document, xpath).to_s
+      end
+
+      def bool(value)
+        value == 'true'
       end
 
       def new_value?(document, xpath, value_to_check)
@@ -98,7 +113,7 @@ module Opscode
           version_string.slice! 'Version '
           @iis_version = version_string
         end
-        @iis_version
+        @iis_version.to_f
       end
     end
   end
